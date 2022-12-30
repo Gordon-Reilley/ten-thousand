@@ -1,25 +1,10 @@
-# LAB - Class 06
+# LAB - Class 06, 07, and 08
 ## Project: Ten Thousand
 ### Author: Gordon P Reilley Jr
-### Links and Resources
-back-end server url (when applicable)
 
-front-end application (when applicable)
-### Setup
+### How to initialize/run
+- Run the game by typing "y" in the terminal and then following the instructions.
 
-.env requirements (where applicable)
+##### Tests
 
-i.e.
-
-
-PORT - Port Number
-
-DATABASE_URL - URL to the running Postgres instance/db
-
-### How to initialize/run your application (where applicable)
-e.g. python main.py
-
-### How to use your library (where applicable)
-###### Tests
-
-- Used pytest to test all functions.
+- Used pytest and simulations to test all functions.
