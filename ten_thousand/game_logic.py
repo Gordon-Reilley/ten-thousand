@@ -55,31 +55,93 @@ class GameLogic:
         dice_to_reroll = len(roll_tuple) - len(kept_dice)
         return kept_dice, dice_to_reroll
 
+    @staticmethod
+    def get_scorers(roll):
+        return tuple([x for x in roll if x in [1, 5]])
+
+    @staticmethod
+    def validate_keepers(roll, keepers):
+        roll_ctr = Counter()
+        keepers_ctr = Counter()
+        for num in roll:
+            roll_ctr[num] += 1
+        for num in keepers:
+            keepers_ctr[num] += 1
+
+        for key in keepers_ctr:
+            if key not in roll_ctr:
+                print(roll_ctr)
+                print(keepers_ctr)
+                return False
+            if keepers_ctr[key] > roll_ctr[key]:
+                print(roll_ctr)
+                print(keepers_ctr)
+                return False
+        return True
+
     def quit_game(self):
         print(f'Thanks for playing. You earned {self.game_score}')
         self.keep_playing = False
 
+    @staticmethod
+    def print_roll(roll):
+        roll_str = [str(x) for x in roll]
+        print(f"*** {' '.join(roll_str)} ***")
+
+    def roll_validation(self, roll):
+        self.print_roll(roll)
+        user_kept = input('Enter dice to keep, or (q)uit: ')
+        if user_kept == 'q':
+            self.quit_game()
+            kept_dice = []
+            dice_to_reroll = 0
+            quit_game = True
+            return kept_dice, dice_to_reroll, quit_game
+
+        else:
+            kept_dice, dice_to_reroll = self.kept_dice(user_kept, roll)
+            if self.calculate_score(kept_dice) == 1500 or len(self.get_scorers(roll)) == 6:
+                dice_to_reroll = 6
+            if not self.validate_keepers(roll, kept_dice):
+                print("Cheater!!! Or possibly made a typo...")
+                self.roll_validation(roll)
+            return kept_dice, dice_to_reroll
+
+    def round_end(self):
+        print(f'You banked {self.calculate_score(self.round_dice)} points in round {self.round}')
+        self.game_score += self.calculate_score(self.round_dice)
+        print(f'Total score is {self.game_score} points')
+        self.round += 1
+        self.round_logic()
+
+    def zilcher(self, roll):
+        if self.calculate_score(roll) == 0:
+            self.print_roll(roll)
+            print('''
+          ****************************************
+          **        Zilch!!! Round over         **
+          ****************************************
+                      ''')
+            self.round += 1
+            self.round_logic()
+
     def roll_logic(self, dice=6):
         print(f'Rolling {dice} dice...')
         roll = self.roll_dice(dice)
-        roll_str = [str(x) for x in roll]
-        print(f"*** {' '.join(roll_str)} ***")
-        user_kept = input('Enter dice to keep, or (q)uit:')
-        if user_kept == 'q':
-            self.quit_game()
-        kept_dice, dice_to_reroll = self.kept_dice(user_kept, roll)
+        self.zilcher(roll)
+        kept_dice, reroll_dice, quit_game = self.roll_validation(roll)
+        if quit_game:
+            return
         self.round_dice.extend(kept_dice)
+
         print(
-            f'You have {self.calculate_score(self.round_dice)} unbanked points and {dice_to_reroll} dice remaining\n(r)oll again, (b)ank your points or (q)uit:')
+            f'You have {self.calculate_score(self.round_dice)} unbanked points and {reroll_dice} dice remaining\n(r)oll again, (b)ank your points or (q)uit:')
         choice = input(f'> ')
+
         if choice == 'r':
-            self.roll_logic(dice_to_reroll)
+            self.roll_logic(reroll_dice)
         elif choice == 'b':
-            print(f'You banked {self.calculate_score(self.round_dice)} points in round {self.round}')
-            self.game_score += self.calculate_score(self.round_dice)
-            print(f'Total score is {self.game_score} points')
-            self.round += 1
-            self.round_logic()
+            self.round_end()
         elif choice == 'q':
             self.quit_game()
 
@@ -96,8 +158,8 @@ class GameLogic:
         print(f'Starting round {self.round}')
         self.roll_logic()
 
-    def play(self):
-        while self.keep_playing:
+    def play(self, num_rounds=20):
+        while self.keep_playing and self.round < num_rounds:
             print('Welcome to Ten Thousand\n(y)es to play or (n)o to decline')
             play_prompt = input('> ')
             if play_prompt == 'y':
