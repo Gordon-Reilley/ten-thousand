@@ -3,6 +3,12 @@ from collections import Counter
 
 class GameLogic:
 
+    def __init__(self):
+        self.keep_playing = True
+        self.game_score = 0
+        self.round_dice = []
+        self.round = 1
+
     @staticmethod
     def calculate_score(roll):
         score = 0
@@ -51,7 +57,7 @@ class GameLogic:
 
     @staticmethod
     def kept_dice(user_input, roll_tuple):
-        kept_dice = [int(x) for x in user_input]
+        kept_dice = tuple([int(x) for x in user_input])
         dice_to_reroll = len(roll_tuple) - len(kept_dice)
         return kept_dice, dice_to_reroll
 
@@ -100,12 +106,13 @@ class GameLogic:
 
         else:
             kept_dice, dice_to_reroll = self.kept_dice(user_kept, roll)
+            quit_game = False
             if self.calculate_score(kept_dice) == 1500 or len(self.get_scorers(roll)) == 6:
                 dice_to_reroll = 6
             if not self.validate_keepers(roll, kept_dice):
                 print("Cheater!!! Or possibly made a typo...")
                 self.roll_validation(roll)
-            return kept_dice, dice_to_reroll
+            return kept_dice, dice_to_reroll, quit_game
 
     def round_end(self):
         print(f'You banked {self.calculate_score(self.round_dice)} points in round {self.round}')
